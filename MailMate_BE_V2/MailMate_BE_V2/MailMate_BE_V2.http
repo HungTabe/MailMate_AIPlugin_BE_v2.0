@@ -1,0 +1,6 @@
+@MailMate_BE_V2_HostAddress = http://localhost:5130
+
+GET {{MailMate_BE_V2_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
