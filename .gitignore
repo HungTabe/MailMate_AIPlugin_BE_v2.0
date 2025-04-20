@@ -1,0 +1,65 @@
+# .NET Core / ASP.NET Core
+bin/
+obj/
+*.csproj.user
+*.pdb
+*.exe
+*.dll
+*.suo
+*.cache
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio / VS Code
+.vscode/
+.vs/
+*.code-workspace
+
+# NuGet Packages
+*.nupkg
+packages/
+nuget.exe
+
+# IDE-specific
+.idea/
+*.iml
+
+# ASP.NET Core specific
+appsettings.Development.json
+appsettings.Staging.json
+wwwroot/build/
+wwwroot/dist/
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Environment variables and secrets
+.env
+*.secrets
+secrets.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Test results
+TestResults/
+*.trx
+*.xml
+
+# Dependency lock files (optional, depending on your preference)
+*.lock.json
+
+# Rider (JetBrains) specific
+.idea/
+
+# Azure / Deployment specific
+publish/
+*.pubxml
+*.pubxml.user
