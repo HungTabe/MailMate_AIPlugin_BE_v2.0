@@ -1,0 +1,21 @@
+Create Database
+CREATE DATABASE MailMateDb;
+GO
+
+Delete Database
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'MailMateDb')
+BEGIN
+    ALTER DATABASE MailMateDb SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE MailMateDb;
+END
+GO
+
+Delete Migration
+dotnet ef migrations remove [name migration want to del]
+
+// Create and run Migration
+cd // Tab to your project
+dotnet tool install --global dotnet-ef
+dotnet build
+dotnet ef migrations add InitialCreate
+dotnet ef database update
