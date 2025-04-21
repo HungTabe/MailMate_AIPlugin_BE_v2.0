@@ -21,6 +21,7 @@ namespace MailMate_BE_V2.Data
         public DbSet<EmailSchedule> EmailSchedules { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Log> Logs { get; set; }
+        public DbSet<MarketingLead> MarketingLeads { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -116,6 +117,18 @@ namespace MailMate_BE_V2.Data
                 .HasOne(l => l.User)
                 .WithMany(u => u.Logs)
                 .HasForeignKey(l => l.UserId);
+
+            // MarketingLeads
+            modelBuilder.Entity<MarketingLead>()
+                .Property(ml => ml.PlanType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<MarketingLead>()
+                .Property(ml => ml.Status)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<MarketingLead>()
+                .HasIndex(ml => ml.Email);
         }
     }
 }
