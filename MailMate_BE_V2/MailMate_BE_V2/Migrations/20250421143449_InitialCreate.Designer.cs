@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MailMate_BE_V2.Migrations
 {
     [DbContext(typeof(MailMateDbContext))]
-    [Migration("20250420155555_InitialCreate")]
+    [Migration("20250421143449_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -283,6 +283,45 @@ namespace MailMate_BE_V2.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Logs");
+                });
+
+            modelBuilder.Entity("MailMate_BE_V2.Models.MarketingLead", b =>
+                {
+                    b.Property<Guid>("LeadId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PlanType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("LeadId");
+
+                    b.HasIndex("Email");
+
+                    b.ToTable("MarketingLeads");
                 });
 
             modelBuilder.Entity("MailMate_BE_V2.Models.Payment", b =>

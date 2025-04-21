@@ -24,6 +24,23 @@ namespace MailMate_BE_V2.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MarketingLeads",
+                columns: table => new
+                {
+                    LeadId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    PlanType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MarketingLeads", x => x.LeadId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -286,6 +303,11 @@ namespace MailMate_BE_V2.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MarketingLeads_Email",
+                table: "MarketingLeads",
+                column: "Email");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Payments_UserId",
                 table: "Payments",
                 column: "UserId");
@@ -308,6 +330,9 @@ namespace MailMate_BE_V2.Migrations
 
             migrationBuilder.DropTable(
                 name: "Logs");
+
+            migrationBuilder.DropTable(
+                name: "MarketingLeads");
 
             migrationBuilder.DropTable(
                 name: "Payments");
