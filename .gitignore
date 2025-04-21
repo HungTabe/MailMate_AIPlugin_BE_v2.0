@@ -26,6 +26,7 @@ nuget.exe
 *.iml
 
 # ASP.NET Core specific
+appsettings.json
 appsettings.Development.json
 appsettings.Staging.json
 wwwroot/build/

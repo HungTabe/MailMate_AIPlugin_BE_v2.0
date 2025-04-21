@@ -1,6 +1,7 @@
 using MailMate_BE_V2.Data;
 using MailMate_BE_V2.Interfaces;
 using MailMate_BE_V2.Services;
+using MailMate_BE_V2.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,8 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IMarketingService, MarketingService>();
+builder.Services.AddScoped<EmailUtility>();
 
-// JWT
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
