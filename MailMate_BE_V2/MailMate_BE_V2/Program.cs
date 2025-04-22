@@ -1,18 +1,20 @@
 using MailMate_BE_V2.Data;
+using MailMate_BE_V2.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-// Register DbContext
+// DbContext
 builder.Services.AddDbContext<MailMateDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Dependency Injection
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
