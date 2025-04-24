@@ -1,5 +1,7 @@
 ﻿using MailMate_BE_V2.Data;
+using MailMate_BE_V2.Data.EnumData;
 using MailMate_BE_V2.DTO;
+using MailMate_BE_V2.DTOs;
 using MailMate_BE_V2.Interfaces;
 using MailMate_BE_V2.Models;
 using Microsoft.EntityFrameworkCore;

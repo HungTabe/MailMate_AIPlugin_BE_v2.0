@@ -1,4 +1,5 @@
 ﻿using MailMate_BE_V2.DTO;
+using MailMate_BE_V2.DTOs;
 using MailMate_BE_V2.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,26 +37,6 @@ namespace MailMate_BE_V2.Controllers
             {
                 return StatusCode(500, new { message = "An error occurred while processing your request" });
             }
-        }
-    }
-}
-﻿using MailMate_BE_V2.DTOs;
-using MailMate_BE_V2.Services;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
-
-namespace MailMate_BE_V2.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AuthController : ControllerBase
-    {
-        private readonly IAuthService _authService;
-
-        public AuthController(IAuthService authService)
-        {
-            _authService = authService;
         }
 
         [HttpPost("register")]
