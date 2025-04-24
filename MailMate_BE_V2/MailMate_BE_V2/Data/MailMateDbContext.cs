@@ -27,6 +27,10 @@ namespace MailMate_BE_V2.Data
         {
             // Users
             modelBuilder.Entity<User>()
+                .Property(u => u.Role)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<User>()
                 .Property(u => u.SubscriptionPlan)
                 .HasConversion<string>();
 

@@ -1,4 +1,5 @@
 ﻿using MailMate_BE_V2.DTO;
+using MailMate_BE_V2.DTOs;
 using MailMate_BE_V2.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,6 +36,20 @@ namespace MailMate_BE_V2.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred while processing your request" });
+            }
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            try
+            {
+                var response = await _authService.RegisterAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
             }
         }
     }
