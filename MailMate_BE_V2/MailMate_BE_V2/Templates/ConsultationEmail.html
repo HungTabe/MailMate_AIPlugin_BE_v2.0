@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+            .header img {
+                max-width: 150px;
+            }
+
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://your-logo-url.com/mailmate-logo.png" alt="MAILMate Logo">
+            <h1>Welcome to MAILMate</h1>
+        </div>
+        <div class="content">
+            <h2>Dear @Model.FullName,</h2>
+            <p>Thank you for your interest in the <strong>@Model.PlanType</strong> plan of MAILMate! We're excited to help you explore our services.</p>
+            <p>
+                Our team will review your request and provide detailed information about the plan soon.
+                @if (!string.IsNullOrEmpty(Model.PhoneNumber)) {
+                <span>You may also receive a call from our telesales team at <strong>@Model.PhoneNumber</strong> for a personalized consultation.</span>
+                }
+            </p>
+            <p>Here’s what you can expect from the @Model.PlanType plan:</p>
+            <ul>
+                <li>@(Model.PlanType == "Free" ? "Basic email automation features" : Model.PlanType == "Pro" ? "Advanced automation and analytics" : "Full enterprise features with dedicated support")</li>
+                <li>24/7 customer support</li>
+                <li>Seamless integration with your existing email accounts</li>
+            </ul>
+            <p style="text-align: center;">
+                <a href="https://www.mailmate.com/plans" class="cta-button">Learn More About Your Plan</a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>© 2025 MAILMate. All rights reserved.</p>
+            <p>Contact us at <a href="mailto:support@mailmate.com">support@mailmate.com</a></p>
+        </div>
+    </div>
+</body>
+</html>
