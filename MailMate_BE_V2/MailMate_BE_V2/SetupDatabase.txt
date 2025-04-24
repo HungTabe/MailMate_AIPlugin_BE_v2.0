@@ -19,3 +19,12 @@ dotnet tool install --global dotnet-ef
 dotnet build
 dotnet ef migrations add InitialCreate
 dotnet ef database update
+
+//
+{
+  "fullName": "TranDinhHung",
+  "email": "trandinhhung717@gmail.com",
+  "phoneNumber": "+84946836459",
+  "planType": "Pro"
+}
+//
