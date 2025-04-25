@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MailMate_BE_V2.Migrations
 {
     [DbContext(typeof(MailMateDbContext))]
-    [Migration("20250421143449_InitialCreate")]
+    [Migration("20250425060728_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -389,8 +389,9 @@ namespace MailMate_BE_V2.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("SubscriptionEndDate")
                         .HasColumnType("datetime2");

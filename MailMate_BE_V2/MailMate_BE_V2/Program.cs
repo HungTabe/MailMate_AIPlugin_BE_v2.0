@@ -48,7 +48,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000") // FE domain
+            policy.WithOrigins("https://mail-mate-ai-plugin-page.vercel.app") // FE domain
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials(); // If use cookie
