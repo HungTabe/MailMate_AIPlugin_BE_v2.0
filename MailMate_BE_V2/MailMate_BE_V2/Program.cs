@@ -1,4 +1,4 @@
-using MailMate_BE_V2.Data;
+﻿using MailMate_BE_V2.Data;
 using MailMate_BE_V2.Interfaces;
 using MailMate_BE_V2.Services;
 using MailMate_BE_V2.Utilities;
@@ -13,7 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMarketingService, MarketingService>();
 builder.Services.AddScoped<EmailUtility>();
-
+builder.Services.AddScoped<IEmailAccountService, EmailAccountService>(); // Thêm đăng ký cho IEmailAccountService
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration); //EmailAccountService sử dụng IConfiguration để đọc các giá trị như _googleClientId, _googleClientSecret, _redirectUri. Nếu không đăng ký, sẽ gây lỗi runtime khi inject dependency.
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
