@@ -44,7 +44,7 @@ namespace MailMate_BE_V2.Services
                 CancellationToken.None);
 
             // Tạo tài khoản email mới với provider Google
-            var userId = Guid.NewGuid(); // Thay bằng logic lấy user ID thực tế
+            var userId = Guid.NewGuid(); // chưa implement logic lấy userId thực tế (vẫn hardcode userId bằng Guid.NewGuid()), API này sẽ tạm thời lấy tất cả tài khoản email trong cơ sở dữ liệu (không lọc theo userId). Sau này, khi bạn thêm logic lấy userId, chúng ta sẽ cập nhật lại để lọc theo người dùng.
             var emailAccount = new EmailAccount
             {
                 EmailAccountId = Guid.NewGuid(),
@@ -64,6 +64,50 @@ namespace MailMate_BE_V2.Services
                 Provider = emailAccount.Provider,
                 ConnectedAt = emailAccount.ConnectedAt
             };
+        }
+        public async Task<List<EmailAccountListResponse>> GetEmailAccountsAsync()
+        {
+            // Tạm thời lấy tất cả tài khoản email vì chưa có logic lấy userId
+            var emailAccounts = await _context.EmailAccounts
+                .Select(ea => new EmailAccountListResponse
+                {
+                    EmailAccountId = ea.EmailAccountId,
+                    Provider = ea.Provider,
+                    ConnectedAt = ea.ConnectedAt
+                })
+                .ToListAsync();
+
+            return emailAccounts;
+        }
+        public async Task<EmailAccountDetailResponse> GetEmailAccountByIdAsync(Guid emailAccountId)
+        {
+            var emailAccount = await _context.EmailAccounts
+                .Where(ea => ea.EmailAccountId == emailAccountId)
+                .Select(ea => new EmailAccountDetailResponse
+                {
+                    EmailAccountId = ea.EmailAccountId,
+                    UserId = ea.UserId,
+                    Provider = ea.Provider,
+                    ConnectedAt = ea.ConnectedAt
+                })
+                .FirstOrDefaultAsync();
+
+            if (emailAccount == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy tài khoản email với ID {emailAccountId}.");
+            }
+
+            return emailAccount;
+        }
+        public async Task DeleteEmailAccountAsync(Guid emailAccountId)
+        {
+            var emailAccount = await _context.EmailAccounts.FindAsync(emailAccountId);
+            if (emailAccount == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy tài khoản email với ID {emailAccountId}.");
+            }
+            _context.EmailAccounts.Remove(emailAccount);
+            await _context.SaveChangesAsync();
         }
     }
 }
