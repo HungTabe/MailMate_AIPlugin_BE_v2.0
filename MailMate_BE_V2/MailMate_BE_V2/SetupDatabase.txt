@@ -27,4 +27,5 @@ dotnet ef database update
   "phoneNumber": "+84946836459",
   "planType": "Pro"
 }
+Link API : https://mailmatebe-akg9fhe2fddfhrbt.canadacentral-01.azurewebsites.net/
 //
