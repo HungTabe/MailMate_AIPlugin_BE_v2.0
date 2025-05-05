@@ -68,7 +68,7 @@ namespace MailMate_BE_V2.Services
                 Email = request.Email.Trim().ToLower(),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 FullName = request.FullName,
-                Role = UserRole.User,  // Gán mặc định
+                Role = UserRole.User,
                 IsActive = true,
                 SubscriptionPlan = SubscriptionPlan.Free,
                 SubscriptionEndDate = null,
