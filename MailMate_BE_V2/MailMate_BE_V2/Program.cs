@@ -12,7 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMarketingService, MarketingService>();
+builder.Services.AddHttpClient<IEmailAccountService, EmailAccountService>();
 builder.Services.AddScoped<EmailUtility>();
+builder.Services.AddScoped<IEmailAccountService, EmailAccountService>();
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -48,7 +50,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
-            policy.WithOrigins("https://mail-mate-ai-plugin-page.vercel.app") // FE domain
+            policy.WithOrigins("https://mail-mate-ai-plugin-page.vercel.app", "http://localhost:3000", "https://localhost:3000") // FE domain
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials(); // If use cookie
