@@ -41,10 +41,6 @@ namespace MailMate_BE_V2.Controllers
         {
             try
             {
-                //var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                //if (string.IsNullOrEmpty(userId))
-                //    return BadRequest("User ID not found in token.");
-
                 var redirectUrl = await _emailAccountService.HandleOAuthCallbackAsync(code);
                 return Redirect(redirectUrl);
             }
