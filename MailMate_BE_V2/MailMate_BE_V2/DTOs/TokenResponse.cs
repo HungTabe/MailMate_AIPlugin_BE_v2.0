@@ -1,0 +1,9 @@
+﻿namespace MailMate_BE_V2.DTOs
+{
+    public class TokenResponse
+    {
+        public string access_token { get; set; }
+        public string refresh_token { get; set; }
+        public int expires_in { get; set; }
+    }
+}
