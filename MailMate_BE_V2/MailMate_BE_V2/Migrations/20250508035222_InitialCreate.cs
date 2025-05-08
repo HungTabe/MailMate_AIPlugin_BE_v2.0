@@ -196,7 +196,7 @@ namespace MailMate_BE_V2.Migrations
                 name: "Emails",
                 columns: table => new
                 {
-                    EmailId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EmailId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     EmailAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Subject = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -242,7 +242,7 @@ namespace MailMate_BE_V2.Migrations
                 name: "EmailTagMappings",
                 columns: table => new
                 {
-                    EmailId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EmailId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     EmailTagId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>

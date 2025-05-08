@@ -119,9 +119,8 @@ namespace MailMate_BE_V2.Migrations
 
             modelBuilder.Entity("MailMate_BE_V2.Models.Email", b =>
                 {
-                    b.Property<Guid>("EmailId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("EmailId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Body")
                         .IsRequired()
@@ -241,8 +240,8 @@ namespace MailMate_BE_V2.Migrations
 
             modelBuilder.Entity("MailMate_BE_V2.Models.EmailTagMapping", b =>
                 {
-                    b.Property<Guid>("EmailId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("EmailId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<Guid>("EmailTagId")
                         .HasColumnType("uniqueidentifier");
