@@ -6,7 +6,7 @@ namespace MailMate_BE_V2.Models
     public class Email
     {
         [Key]
-        public Guid EmailId { get; set; }
+        public string EmailId { get; set; } // string to match Gmail API
 
         [Required]
         public Guid EmailAccountId { get; set; }

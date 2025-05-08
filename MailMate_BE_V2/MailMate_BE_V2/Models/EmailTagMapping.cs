@@ -4,7 +4,7 @@ namespace MailMate_BE_V2.Models
 {
     public class EmailTagMapping
     {
-        public Guid EmailId { get; set; }
+        public string EmailId { get; set; }
 
         public Guid EmailTagId { get; set; }
 
