@@ -15,6 +15,15 @@ builder.Services.AddScoped<IMarketingService, MarketingService>();
 builder.Services.AddHttpClient<IEmailAccountService, EmailAccountService>();
 builder.Services.AddScoped<EmailUtility>();
 builder.Services.AddScoped<IEmailAccountService, EmailAccountService>();
+//builder.Services.AddHttpClient<IEmailSummaryService, HuggingFaceAIService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Add logging
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+    logging.AddDebug();
+});
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -28,8 +37,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
+        options.MapInboundClaims = false; // Off mappping claim
+
     });
 
 builder.Services.AddAuthorization();

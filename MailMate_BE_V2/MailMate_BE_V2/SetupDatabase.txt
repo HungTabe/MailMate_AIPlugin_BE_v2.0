@@ -28,4 +28,12 @@ dotnet ef database update
   "planType": "Pro"
 }
 Link API : https://mailmatebe-akg9fhe2fddfhrbt.canadacentral-01.azurewebsites.net/
+
+JSON register
+{
+  "email": "trandinhhung717@gmail.com",
+  "password": "trandinhhung717@",
+  "fullName": "HungTran"
+}
+
 //
