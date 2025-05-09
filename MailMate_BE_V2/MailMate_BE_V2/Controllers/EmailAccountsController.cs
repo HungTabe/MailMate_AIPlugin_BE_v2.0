@@ -1,14 +1,16 @@
 ﻿using MailMate_BE_V2.DTOs;
 using MailMate_BE_V2.Interfaces;
+using MailMate_BE_V2.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using System;
+using System.Collections.Generic;
 
 namespace MailMate_BE_V2.Controllers
 {
     [Route("api/email-accounts")]
     [ApiController]
-    //[Authorize] // Yêu cầu người dùng đăng nhập - Hien tai develop nen ko bat Autho
+    [Authorize] // Yêu cầu người dùng đăng nhập
     public class EmailAccountsController : ControllerBase
     {
         private readonly IEmailAccountService _emailAccountService;
@@ -18,7 +20,7 @@ namespace MailMate_BE_V2.Controllers
             _emailAccountService = emailAccountService;
         }
 
-        [HttpGet("auth-url")] //GET   /api/email-accounts/connect        - Kết nối tài khoản email qua OAuth
+        [HttpGet("auth-url")]
         public async Task<ActionResult<AuthUrlResponse>> GetAuthUrl()
         {
             try
@@ -53,6 +55,7 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Message = "An error occurred while processing the OAuth callback." });
             }
         }
+
         [HttpGet("list")]
         public async Task<ActionResult<List<EmailAccountListResponse>>> GetEmailAccounts()
         {
@@ -70,6 +73,7 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Message = "An error occurred while fetching email accounts." });
             }
         }
+
         [HttpGet("email-account-detail")]
         public async Task<ActionResult<EmailAccountDetailResponse>> GetEmailAccountById(Guid id)
         {
@@ -89,6 +93,28 @@ namespace MailMate_BE_V2.Controllers
             catch
             {
                 return StatusCode(500, new { Message = "An error occurred while fetching the email account." });
+            }
+        }
+
+        [HttpDelete("delete-email-account")]
+        public async Task<IActionResult> DeleteEmailAccount(Guid id)
+        {
+            try
+            {
+                await _emailAccountService.DeleteEmailAccountAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch
+            {
+                return StatusCode(500, new { Message = "An error occurred while deleting the email account." });
             }
         }
     }

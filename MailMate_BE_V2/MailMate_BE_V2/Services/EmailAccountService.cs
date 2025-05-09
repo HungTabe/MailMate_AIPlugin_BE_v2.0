@@ -119,7 +119,7 @@ namespace MailMate_BE_V2.Services
             }
         }
 
-        public async Task<List<EmailAccountListResponse>> GetEmailAccountsAsync() //API Lấy danh sách tài khoản email đã kết nối
+        public async Task<List<EmailAccountListResponse>> GetEmailAccountsAsync()
         {
             var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
@@ -140,7 +140,7 @@ namespace MailMate_BE_V2.Services
             return emailAccounts;
         }
 
-        public async Task<EmailAccountDetailResponse> GetEmailAccountByIdAsync(Guid emailAccountId) //Lấy chi tiết tài khoản email
+        public async Task<EmailAccountDetailResponse> GetEmailAccountByIdAsync(Guid emailAccountId)
         {
             var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
@@ -165,6 +165,26 @@ namespace MailMate_BE_V2.Services
             }
 
             return emailAccount;
+        }
+
+        public async Task DeleteEmailAccountAsync(Guid emailAccountId)
+        {
+            var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                throw new InvalidOperationException("Không thể lấy userId từ token JWT.");
+            }
+
+            var emailAccount = await _context.EmailAccounts
+                .FirstOrDefaultAsync(ea => ea.EmailAccountId == emailAccountId && ea.UserId == userId);
+
+            if (emailAccount == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy tài khoản email với ID {emailAccountId}.");
+            }
+
+            _context.EmailAccounts.Remove(emailAccount);
+            await _context.SaveChangesAsync();
         }
     }
 }

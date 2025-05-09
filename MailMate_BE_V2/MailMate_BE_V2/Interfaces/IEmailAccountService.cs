@@ -10,5 +10,6 @@
         Task<string> HandleOAuthCallbackAsync(string code);
         Task<List<EmailAccountListResponse>> GetEmailAccountsAsync();
         Task<EmailAccountDetailResponse> GetEmailAccountByIdAsync(Guid emailAccountId);
+        Task DeleteEmailAccountAsync(Guid emailAccountId);
     }
 }
