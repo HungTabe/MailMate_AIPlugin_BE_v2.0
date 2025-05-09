@@ -17,6 +17,10 @@ builder.Services.AddScoped<EmailUtility>();
 builder.Services.AddScoped<IEmailAccountService, EmailAccountService>();
 //builder.Services.AddHttpClient<IEmailSummaryService, HuggingFaceAIService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient<IGeminiService, GeminiService>();
+
+// Cấu hình Gemini settings
+builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("Gemini"));
 
 // Add logging
 builder.Services.AddLogging(logging =>
