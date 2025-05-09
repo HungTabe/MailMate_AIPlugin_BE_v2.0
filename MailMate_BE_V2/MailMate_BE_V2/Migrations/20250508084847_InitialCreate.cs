@@ -239,6 +239,53 @@ namespace MailMate_BE_V2.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AISummarizationLogs",
+                columns: table => new
+                {
+                    LogId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EmailId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    ModelName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    InputLength = table.Column<int>(type: "int", nullable: false),
+                    OutputLength = table.Column<int>(type: "int", nullable: false),
+                    ExecutionTimeMs = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ErrorMessage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AISummarizationLogs", x => x.LogId);
+                    table.ForeignKey(
+                        name: "FK_AISummarizationLogs_Emails_EmailId",
+                        column: x => x.EmailId,
+                        principalTable: "Emails",
+                        principalColumn: "EmailId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmailSummaries",
+                columns: table => new
+                {
+                    EmailSummaryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EmailId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    Summary = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModelName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmailSummaries", x => x.EmailSummaryId);
+                    table.ForeignKey(
+                        name: "FK_EmailSummaries_Emails_EmailId",
+                        column: x => x.EmailId,
+                        principalTable: "Emails",
+                        principalColumn: "EmailId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EmailTagMappings",
                 columns: table => new
                 {
@@ -261,6 +308,11 @@ namespace MailMate_BE_V2.Migrations
                         principalColumn: "EmailId",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AISummarizationLogs_EmailId",
+                table: "AISummarizationLogs",
+                column: "EmailId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AutoReplyScripts_UserId",
@@ -293,6 +345,11 @@ namespace MailMate_BE_V2.Migrations
                 column: "EmailAccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EmailSummaries_EmailId",
+                table: "EmailSummaries",
+                column: "EmailId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EmailTagMappings_EmailTagId",
                 table: "EmailTagMappings",
                 column: "EmailTagId");
@@ -317,6 +374,9 @@ namespace MailMate_BE_V2.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AISummarizationLogs");
+
+            migrationBuilder.DropTable(
                 name: "AutoReplyScripts");
 
             migrationBuilder.DropTable(
@@ -324,6 +384,9 @@ namespace MailMate_BE_V2.Migrations
 
             migrationBuilder.DropTable(
                 name: "EmailSchedules");
+
+            migrationBuilder.DropTable(
+                name: "EmailSummaries");
 
             migrationBuilder.DropTable(
                 name: "EmailTagMappings");

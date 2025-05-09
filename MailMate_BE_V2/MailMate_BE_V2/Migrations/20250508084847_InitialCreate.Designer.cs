@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MailMate_BE_V2.Migrations
 {
     [DbContext(typeof(MailMateDbContext))]
-    [Migration("20250508035222_InitialCreate")]
+    [Migration("20250508084847_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,50 @@ namespace MailMate_BE_V2.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("MailMate_BE_V2.Models.AISummarizationLog", b =>
+                {
+                    b.Property<Guid>("LogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmailId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ErrorMessage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ExecutionTimeMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InputLength")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("OutputLength")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("LogId");
+
+                    b.HasIndex("EmailId");
+
+                    b.ToTable("AISummarizationLogs");
+                });
 
             modelBuilder.Entity("MailMate_BE_V2.Models.AutoReplyScript", b =>
                 {
@@ -225,6 +269,39 @@ namespace MailMate_BE_V2.Migrations
                     b.ToTable("EmailSchedules");
                 });
 
+            modelBuilder.Entity("MailMate_BE_V2.Models.EmailSummary", b =>
+                {
+                    b.Property<Guid>("EmailSummaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmailId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("EmailSummaryId");
+
+                    b.HasIndex("EmailId");
+
+                    b.ToTable("EmailSummaries");
+                });
+
             modelBuilder.Entity("MailMate_BE_V2.Models.EmailTag", b =>
                 {
                     b.Property<Guid>("EmailTagId")
@@ -404,6 +481,17 @@ namespace MailMate_BE_V2.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("MailMate_BE_V2.Models.AISummarizationLog", b =>
+                {
+                    b.HasOne("MailMate_BE_V2.Models.Email", "Email")
+                        .WithMany()
+                        .HasForeignKey("EmailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Email");
+                });
+
             modelBuilder.Entity("MailMate_BE_V2.Models.AutoReplyScript", b =>
                 {
                     b.HasOne("MailMate_BE_V2.Models.User", "User")
@@ -470,6 +558,17 @@ namespace MailMate_BE_V2.Migrations
                     b.Navigation("EmailAccount");
                 });
 
+            modelBuilder.Entity("MailMate_BE_V2.Models.EmailSummary", b =>
+                {
+                    b.HasOne("MailMate_BE_V2.Models.Email", "Email")
+                        .WithMany("EmailSummaries")
+                        .HasForeignKey("EmailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Email");
+                });
+
             modelBuilder.Entity("MailMate_BE_V2.Models.EmailTagMapping", b =>
                 {
                     b.HasOne("MailMate_BE_V2.Models.Email", "Email")
@@ -518,6 +617,8 @@ namespace MailMate_BE_V2.Migrations
 
             modelBuilder.Entity("MailMate_BE_V2.Models.Email", b =>
                 {
+                    b.Navigation("EmailSummaries");
+
                     b.Navigation("EmailTagMappings");
                 });
 

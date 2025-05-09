@@ -1,4 +1,5 @@
-using MailMate_BE_V2.Data;
+﻿using MailMate_BE_V2.Data;
+using MailMate_BE_V2.DTOs.Gemini;
 using MailMate_BE_V2.Interfaces;
 using MailMate_BE_V2.Services;
 using MailMate_BE_V2.Utilities;
@@ -14,8 +15,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMarketingService, MarketingService>();
 builder.Services.AddHttpClient<IEmailAccountService, EmailAccountService>();
 builder.Services.AddScoped<EmailUtility>();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IEmailAccountService, EmailAccountService>();
-//builder.Services.AddHttpClient<IEmailSummaryService, HuggingFaceAIService>();
+builder.Services.AddScoped<IHuggingFaceService, HuggingFaceService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
 
