@@ -15,6 +15,7 @@ builder.Services.AddScoped<IMarketingService, MarketingService>();
 builder.Services.AddHttpClient<IEmailAccountService, EmailAccountService>();
 builder.Services.AddScoped<EmailUtility>();
 builder.Services.AddScoped<IEmailAccountService, EmailAccountService>();
+builder.Services.AddHttpContextAccessor();
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

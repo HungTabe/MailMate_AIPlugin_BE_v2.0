@@ -18,7 +18,7 @@ namespace MailMate_BE_V2.Controllers
             _emailAccountService = emailAccountService;
         }
 
-        [HttpGet("auth-url")]
+        [HttpGet("auth-url")] //GET   /api/email-accounts/connect        - Kết nối tài khoản email qua OAuth
         public async Task<ActionResult<AuthUrlResponse>> GetAuthUrl()
         {
             try
@@ -53,5 +53,23 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Message = "An error occurred while processing the OAuth callback." });
             }
         }
+        [HttpGet("list")]
+        public async Task<ActionResult<List<EmailAccountListResponse>>> GetEmailAccounts()
+        {
+            try
+            {
+                var response = await _emailAccountService.GetEmailAccountsAsync();
+                return Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch
+            {
+                return StatusCode(500, new { Message = "An error occurred while fetching email accounts." });
+            }
+        }
+
     }
 }

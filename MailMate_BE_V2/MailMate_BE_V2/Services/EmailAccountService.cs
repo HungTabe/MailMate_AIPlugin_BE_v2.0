@@ -5,6 +5,7 @@ using MailMate_BE_V2.Interfaces;
 using MailMate_BE_V2.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http;
+using System.Security.Claims;
 
 namespace MailMate_BE_V2.Services
 {
@@ -13,12 +14,14 @@ namespace MailMate_BE_V2.Services
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly MailMateDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EmailAccountService(IConfiguration configuration, MailMateDbContext context, HttpClient httpClient)
+        public EmailAccountService(IConfiguration configuration, MailMateDbContext context, HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
             _context = context;
             _httpClient = httpClient;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public Task<AuthUrlResponse> GetAuthUrlAsync()
@@ -116,5 +119,25 @@ namespace MailMate_BE_V2.Services
             }
         }
 
+        public async Task<List<EmailAccountListResponse>> GetEmailAccountsAsync() //task của API lấy danh sách tài khoản email dã kết nối
+        {
+            var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                throw new InvalidOperationException("Không thể lấy userId từ token JWT.");
+            }
+
+            var emailAccounts = await _context.EmailAccounts
+                .Where(ea => ea.UserId == userId)
+                .Select(ea => new EmailAccountListResponse
+                {
+                    EmailAccountId = ea.EmailAccountId,
+                    Provider = ea.Provider,
+                    ConnectedAt = ea.ConnectedAt
+                })
+                .ToListAsync();
+
+            return emailAccounts;
+        }
     }
 }
