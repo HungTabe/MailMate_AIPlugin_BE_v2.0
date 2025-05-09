@@ -70,6 +70,26 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Message = "An error occurred while fetching email accounts." });
             }
         }
-
+        [HttpGet("email-account-detail")]
+        public async Task<ActionResult<EmailAccountDetailResponse>> GetEmailAccountById(Guid id)
+        {
+            try
+            {
+                var response = await _emailAccountService.GetEmailAccountByIdAsync(id);
+                return Ok(response);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch
+            {
+                return StatusCode(500, new { Message = "An error occurred while fetching the email account." });
+            }
+        }
     }
 }
