@@ -5,6 +5,7 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using MailMate_BE_V2.Data;
 using MailMate_BE_V2.DTOs;
+using MailMate_BE_V2.DTOs.Gemini;
 using MailMate_BE_V2.Interfaces;
 using MailMate_BE_V2.Models;
 using Microsoft.EntityFrameworkCore;
@@ -164,6 +165,7 @@ namespace MailMate_BE_V2.Services
                             EmailAccountId = emailAccount.EmailAccountId,
                             Subject = subject,
                             Body = body,
+                            From = from,
                             Summary = summary,
                             IsSpam = email.LabelIds?.Contains("SPAM") ?? false,
                             ReceivedAt = receivedAt
@@ -245,6 +247,29 @@ namespace MailMate_BE_V2.Services
                 Console.WriteLine($"Unexpected error: {ex.Message}");
                 throw;
             }
+        }
+
+        public async Task<EmailDto> GetEmailByIdAsync(string emailId, string userId)
+        {
+            var email = await _dbContext.Emails
+                .Include(e => e.EmailAccount)
+                .FirstOrDefaultAsync(e => e.EmailId == emailId && e.EmailAccount.UserId == Guid.Parse(userId));
+
+            if (email == null)
+            {
+                throw new Exception("Email not found or you do not have permission to access it.");
+            }
+
+            return new EmailDto
+            {
+                EmailId = email.EmailId,
+                Subject = email.Subject,
+                Body = email.Body,
+                Summary = email.Summary,
+                IsSpam = email.IsSpam,
+                ReceivedAt = email.ReceivedAt,
+                From = email.From,
+            };
         }
 
         private async Task RefreshAccessTokenAsync(EmailAccount emailAccount)

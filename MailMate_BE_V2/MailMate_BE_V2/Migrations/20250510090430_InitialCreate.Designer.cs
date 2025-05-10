@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MailMate_BE_V2.Migrations
 {
     [DbContext(typeof(MailMateDbContext))]
-    [Migration("20250508084847_InitialCreate")]
+    [Migration("20250510090430_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -175,6 +175,11 @@ namespace MailMate_BE_V2.Migrations
 
                     b.Property<Guid>("EmailAccountId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("From")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsSpam")
                         .HasColumnType("bit");

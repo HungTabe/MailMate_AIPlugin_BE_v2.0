@@ -1,4 +1,5 @@
-﻿using MailMate_BE_V2.Interfaces;
+﻿using MailMate_BE_V2.DTOs;
+using MailMate_BE_V2.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -50,6 +51,27 @@ namespace MailMate_BE_V2.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Error = "Internal server error: " + ex.Message });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<EmailDto>> GetEmail(string id)
+        {
+            try
+            {
+                var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { message = "Invalid user" });
+                }
+
+                var email = await _emailService.GetEmailByIdAsync(id, userId);
+                return Ok(email);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching email", details = ex.Message });
             }
         }
     }

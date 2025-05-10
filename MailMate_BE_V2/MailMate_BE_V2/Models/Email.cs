@@ -14,6 +14,9 @@ namespace MailMate_BE_V2.Models
         [StringLength(255)]
         public string Subject { get; set; }
 
+        [StringLength(100)]
+        public string From { get; set; }
+
         public string Body { get; set; }
 
         public string Summary { get; set; }
