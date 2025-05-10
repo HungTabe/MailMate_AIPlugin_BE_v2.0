@@ -1,4 +1,4 @@
-Create Database
+﻿Create Database
 CREATE DATABASE MailMateDb;
 GO
 
@@ -45,6 +45,38 @@ JSON login
 JSON SummarizeTextByAI
 {
   "text": "The tower is 324 metres (1,063 ft) tall, about the same height as an 81-storey building, and the tallest structure in Paris. Its base is square, measuring 125 metres (410 ft) on each side. During its construction, the Eiffel Tower surpassed the Washington Monument to become the tallest man-made structure in the world, a title it held for 41 years until the Chrysler Building in New York City was finished in 1930. It was the first structure to reach a height of 300 metres. Due to the addition of a broadcasting aerial at the top of the tower in 1957, it is now taller than the Chrysler Building by 5.2 metres (17 ft). Excluding transmitters, the Eiffel Tower is the second tallest free-standing structure in France after the Millau Viaduct."
+}
+
+JSON Gemini
+{
+  "text": "Đề xuất người nổi tiếng quảng cáo sai phải liên đới bồi thường Đại biểu Trần Khánh Thu (Thái Bình) đề nghị có chế tài xử lý nghiêm đối với các trang tin điện tử đăng tải quảng cáo sai sự thật, không đúng theo công dụng, nội dung của sản phẩm, những người nổi tiếng quảng cáo sản phẩm không đúng sự thật dẫn đến thiệt hại cho người tiêu dùng.Từ vụ Quang Linh Vlog, Hằng Du Mục, lòng se điếu quảng cáo, đại biểu đề xuất chế tài nghiêm khắc - Ảnh 2. Một loại sản phẩm không cần thuê KOL quảng cáo ĐỌC NGAY Bên cạnh đó, bổ sung quy định yêu cầu các trang tin phải chịu trách nhiệm kiểm duyệt quảng cáo trước khi đăng tải nội dung, thay vì chỉ dựa vào hệ thống quảng cáo tự động như hiện nay.Bà nêu thêm qua các vụ sữa giả, thực phẩm chức năng giả vừa bị phát hiện cho thấy các công ty này đều có giấy tờ kiểm định, kiểm nghiệm, công bố sản phẩm.Nhưng thực tế các sản phẩm được sản xuất qua điều tra, kiểm định của cơ quan công an lại được xác định là hàng giả.Vậy việc yêu cầu người quảng cáo, nhất là các ca sĩ, nghệ sĩ, diễn viên có trách nhiệm kiểm tra tài liệu liên quan đến sản phẩm, hàng hóa có thực sự khả thi.Việc thông báo trước đến người tiếp nhận quảng cáo về việc mình thực hiện hoạt động quảng cáo sẽ như thế nào? Phải chăng là viết lên Facebook, đăng lên TikTok, YouTube nói tôi chuẩn bị sẽ quảng cáo cho nhãn hàng này, sản phẩm kia? Bà đề nghị cần sửa đổi, bổ sung các nội dung này để đảm bảo khả thi hơn.Về cơ chế bồi thường với hoạt động quảng cáo sai của người chuyển tải quảng cáo, nhất là những người nổi tiếng, bà Thu cũng đề xuất cần quy định rõ hơn trong luật.Có thể bổ sung thêm nghĩa vụ của họ, phải chịu trách nhiệm liên đới bồi thường vì hành động quảng cáo sai của mình.Bà dẫn chứng tại Mỹ, Ủy ban Thương mại liên bang yêu cầu người nổi tiếng phải tiết lộ rõ ràng mối quan hệ tài chính với thương hiệu khi quảng cáo sản phẩm. Quảng cáo phải trung thực, không gây hiểu lầm về hiệu quả hoặc tính năng của sản phẩm.",
+  "maxLength": 50
+}
+
+JSON Text Gemini
+{
+  "text": "Đề xuất người nổi tiếng quảng cáo sai phải liên đới bồi thường
+Đại biểu Trần Khánh Thu (Thái Bình) đề nghị có chế tài xử lý nghiêm đối với các trang tin điện tử đăng tải quảng cáo sai sự thật, không đúng theo công dụng, nội dung của sản phẩm, những người nổi tiếng quảng cáo sản phẩm không đúng sự thật dẫn đến thiệt hại cho người tiêu dùng.
+
+Từ vụ Quang Linh Vlog, Hằng Du Mục, lòng se điếu quảng cáo, đại biểu đề xuất chế tài nghiêm khắc - Ảnh 2.
+Một loại sản phẩm không cần thuê KOL quảng cáo
+ĐỌC NGAY
+Bên cạnh đó, bổ sung quy định yêu cầu các trang tin phải chịu trách nhiệm kiểm duyệt quảng cáo trước khi đăng tải nội dung, thay vì chỉ dựa vào hệ thống quảng cáo tự động như hiện nay.
+
+Bà nêu thêm qua các vụ sữa giả, thực phẩm chức năng giả vừa bị phát hiện cho thấy các công ty này đều có giấy tờ kiểm định, kiểm nghiệm, công bố sản phẩm.
+
+Nhưng thực tế các sản phẩm được sản xuất qua điều tra, kiểm định của cơ quan công an lại được xác định là hàng giả.
+
+Vậy việc yêu cầu người quảng cáo, nhất là các ca sĩ, nghệ sĩ, diễn viên có trách nhiệm kiểm tra tài liệu liên quan đến sản phẩm, hàng hóa có thực sự khả thi.
+
+Việc thông báo trước đến người tiếp nhận quảng cáo về việc mình thực hiện hoạt động quảng cáo sẽ như thế nào? Phải chăng là viết lên Facebook, đăng lên TikTok, YouTube nói tôi chuẩn bị sẽ quảng cáo cho nhãn hàng này, sản phẩm kia? Bà đề nghị cần sửa đổi, bổ sung các nội dung này để đảm bảo khả thi hơn.
+
+Về cơ chế bồi thường với hoạt động quảng cáo sai của người chuyển tải quảng cáo, nhất là những người nổi tiếng, bà Thu cũng đề xuất cần quy định rõ hơn trong luật.
+
+Có thể bổ sung thêm nghĩa vụ của họ, phải chịu trách nhiệm liên đới bồi thường vì hành động quảng cáo sai của mình.
+
+Bà dẫn chứng tại Mỹ, Ủy ban Thương mại liên bang yêu cầu người nổi tiếng phải tiết lộ rõ ràng mối quan hệ tài chính với thương hiệu khi quảng cáo sản phẩm. Quảng cáo phải trung thực, không gây hiểu lầm về hiệu quả hoặc tính năng của sản phẩm.",
+  "maxLength": 50
 }
 
 //

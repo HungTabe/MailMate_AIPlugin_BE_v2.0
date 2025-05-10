@@ -19,7 +19,7 @@ namespace MailMate_BE_V2.Controllers
             _emailService = emailService;
         }
 
-        [HttpGet("top20")]
+        [HttpGet("top-10-with-AISummarize")]
         public async Task<IActionResult> GetInboxEmails()
         {
             try

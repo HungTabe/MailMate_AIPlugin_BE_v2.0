@@ -1,6 +1,10 @@
-﻿using MailMate_BE_V2.DTOs.Gemini;
+﻿using MailMate_BE_V2.DTOs;
+using MailMate_BE_V2.DTOs.Gemini;
 using MailMate_BE_V2.Interfaces;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace MailMate_BE_V2.Services
 {
@@ -15,16 +19,27 @@ namespace MailMate_BE_V2.Services
             _settings = settings.Value;
         }
 
-        public async Task<string> GeminiSummarizeTextAsync(string text, int maxLength)
+        public async Task<SummaryResult> GeminiSummarizeTextAsync(string text, int maxLength)
         {
-            // Tạo prompt yêu cầu tóm tắt
-            var prompt = $"Tóm tắt đoạn văn bản sau thành khoảng {maxLength} từ, giữ nguyên ý chính:\n\n{text} . Và bên cạnh đó hãy phân tích thành nội dung sau";
-
-            // Tạo request body theo mẫu cURL
-            var requestBody = new
+            var result = new SummaryResult
             {
-                contents = new[]
+                Summary = "Unable to generate summary.",
+                InputLength = text.Length,
+                OutputLength = 0,
+                ExecutionTimeMs = 0,
+                ErrorMessage = null
+            };
+
+            try
+            {
+                var stopwatch = Stopwatch.StartNew();
+                var flattenedText = Regex.Replace(text, @"[-\u001F\u007F-\u009F]", "");
+                var prompt = $"Tóm tắt đoạn văn bản sau thành khoảng {maxLength} từ, giữ nguyên ý chính :\n\n{flattenedText}.";
+
+                var requestBody = new
                 {
+                    contents = new[]
+                    {
                 new
                 {
                     parts = new[]
@@ -33,20 +48,32 @@ namespace MailMate_BE_V2.Services
                     }
                 }
             }
-            };
+                };
 
-            // Gửi yêu cầu đến Gemini API
-            var url = $"{_settings.Endpoint}?key={_settings.ApiKey}";
-            var response = await _httpClient.PostAsJsonAsync(url, requestBody);
+                var url = $"{_settings.Endpoint}?key={_settings.ApiKey}";
+                var response = await _httpClient.PostAsJsonAsync(url, requestBody);
+                response.EnsureSuccessStatusCode();
 
-            // Kiểm tra lỗi
-            response.EnsureSuccessStatusCode();
+                var geminiResponse = await response.Content.ReadFromJsonAsync<GeminiResponse>();
+                var summary = geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
 
-            // Ánh xạ phản hồi
-            var result = await response.Content.ReadFromJsonAsync<GeminiResponse>();
-            var summary = result?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
+                stopwatch.Stop();
+                result.Summary = string.IsNullOrEmpty(summary) ? "Unable to generate summary." : summary;
 
-            return string.IsNullOrEmpty(summary) ? "Không thể tóm tắt văn bản." : summary;
+                if (string.IsNullOrEmpty(flattenedText))
+                {
+                    result.Summary = "Nội dung mail đề cập đến các thông tin nhạy cảm như STK Ngân hàng, Hóa đơn, v..v.. Vui lòng truy cập Gmail để biết chi tiết";
+                }
+
+                result.OutputLength = result.Summary.Length;
+                result.ExecutionTimeMs = stopwatch.ElapsedMilliseconds;
+            }
+            catch (Exception ex)
+            {
+                result.ErrorMessage = $"Failed to summarize: {ex.Message}";
+            }
+
+            return result;
         }
     }
 }
