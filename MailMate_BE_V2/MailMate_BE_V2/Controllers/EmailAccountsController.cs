@@ -18,7 +18,7 @@ namespace MailMate_BE_V2.Controllers
             _emailAccountService = emailAccountService;
         }
 
-        [HttpGet("auth-url")]
+        [HttpGet("connect")]
         public async Task<ActionResult<AuthUrlResponse>> GetAuthUrl()
         {
             try

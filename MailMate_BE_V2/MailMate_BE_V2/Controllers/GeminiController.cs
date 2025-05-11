@@ -16,7 +16,7 @@ namespace MailMate_BE_V2.Controllers
             _geminiService = geminiService;
         }
 
-        [HttpPost("summarize")]
+        [HttpPost("summarize-with-flatten")]
         public async Task<IActionResult> Summarize([FromBody] GeminiSummarizeRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Text))
@@ -31,8 +31,8 @@ namespace MailMate_BE_V2.Controllers
 
             try
             {
-                var summary = await _geminiService.GeminiSummarizeTextAsync(request.Text, request.MaxLength);
-                return Ok(new SummarizeResponse { Summary = summary });
+                var result = await _geminiService.GeminiSummarizeTextAsync(request.Text, request.MaxLength);
+                return Ok(new SummarizeResponse { Summary = result.Summary });
             }
             catch (HttpRequestException ex)
             {

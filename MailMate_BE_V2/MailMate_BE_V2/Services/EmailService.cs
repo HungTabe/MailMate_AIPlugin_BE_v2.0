@@ -8,6 +8,7 @@ using MailMate_BE_V2.DTOs;
 using MailMate_BE_V2.Interfaces;
 using MailMate_BE_V2.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using System.Text;
 
 namespace MailMate_BE_V2.Services
@@ -18,14 +19,17 @@ namespace MailMate_BE_V2.Services
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly IHuggingFaceService _huggingFaceService;
+        private readonly IGeminiService _geminiService;
 
 
-        public EmailService(MailMateDbContext dbContext, IConfiguration configuration, HttpClient httpClient, IHuggingFaceService huggingFaceService)
+
+        public EmailService(MailMateDbContext dbContext, IConfiguration configuration, HttpClient httpClient, IHuggingFaceService huggingFaceService, IGeminiService geminiService)
         {
             _dbContext = dbContext;
             _configuration = configuration;
             _httpClient = httpClient;
             _huggingFaceService = huggingFaceService;
+            _geminiService = geminiService;
         }
 
         public async Task<List<EmailDto>> GetInboxEmailsAsync(Guid userId)
@@ -74,7 +78,7 @@ namespace MailMate_BE_V2.Services
                 // Fetch the top 20 emails from the inbox
                 var request = gmailService.Users.Messages.List("me");
                 request.Q = "in:inbox";
-                request.MaxResults = 20;
+                request.MaxResults = 10;
 
                 var messages = await request.ExecuteAsync();
                 if (messages.Messages == null || !messages.Messages.Any())
@@ -122,35 +126,36 @@ namespace MailMate_BE_V2.Services
                         }
                     }
 
-                    // Generate a simple summary
-                    var summary = body.Length > 200 ? body.Substring(0, 200) + "..." : body;
-
                     // Check for duplicate email
                     var existingEmail = await _dbContext.Emails
                         .FirstOrDefaultAsync(e => e.EmailAccountId == emailAccount.EmailAccountId && e.EmailId == email.Id);
 
                     if (existingEmail == null)
                     {
-                        // Summary body by Hugging Face
-                        var (summaryText, inputLength, outputLength, executionTimeMs, errorMessage) = await _huggingFaceService.SummarizeAsync(body);
-                        summary = errorMessage ?? summaryText ?? "Unable to generate summary.";
+                        // Summary body by Gemini
+                        string summary = "Unable to generate summary.";
+                        string errorMessage = null;
+                        int inputLength = body.Length;
+                        int outputLength = 0;
+                        long executionTimeMs = 0;
+
+                        try
+                        {
+                            var stopwatch = Stopwatch.StartNew();
+                            var result = await _geminiService.GeminiSummarizeTextAsync(body, 50); 
+                            stopwatch.Stop();
+                            summary = result.Summary;
+                            executionTimeMs = stopwatch.ElapsedMilliseconds;
+                            outputLength = result.Summary.Length; 
+                        }
+                        catch (Exception ex)
+                        {
+                            errorMessage = $"Failed to summarize email: {ex.Message}";
+                            summary = "Unable to generate summary.";
+                        }
 
                         // Parse InternalDate safely
                         DateTime receivedAt = DateTime.UtcNow;
-                        //if (!string.IsNullOrEmpty(email.InternalDate))
-                        //{
-                        //    if (long.TryParse(email.InternalDate, out long internalDate))
-                        //    {
-                        //        try
-                        //        {
-                        //            receivedAt = DateTimeOffset.FromUnixTimeMilliseconds(internalDate).UtcDateTime;
-                        //        }
-                        //        catch (ArgumentOutOfRangeException)
-                        //        {
-                        //            receivedAt = DateTime.UtcNow;
-                        //        }
-                        //    }
-                        //}
 
                         // Save to database
                         var newEmail = new Email
@@ -164,28 +169,29 @@ namespace MailMate_BE_V2.Services
                             ReceivedAt = receivedAt
                         };
                         _dbContext.Emails.Add(newEmail);
-                        await _dbContext.SaveChangesAsync();
 
+                        // Save email summary
                         var emailSummary = new EmailSummary
                         {
                             EmailSummaryId = Guid.NewGuid(),
                             EmailId = email.Id,
                             Summary = summary,
-                            ModelName = _configuration["HuggingFace:ModelName"],
+                            ModelName = "Gemini", // Tên model để ghi nhận
                             CreatedAt = DateTime.UtcNow
                         };
                         _dbContext.EmailSummaries.Add(emailSummary);
 
+                        // Save AI summarization log
                         var aiLog = new AISummarizationLog
                         {
                             LogId = Guid.NewGuid(),
                             EmailId = email.Id,
-                            ModelName = _configuration["HuggingFace:ModelName"],
+                            ModelName = "Gemini",
                             InputLength = inputLength,
                             OutputLength = outputLength,
-                            ExecutionTimeMs = executionTimeMs,
+                            ExecutionTimeMs = (int)executionTimeMs,
                             Status = errorMessage == null ? "Success" : "Failed",
-                            ErrorMessage = errorMessage,
+                            ErrorMessage = errorMessage ?? "",
                             CreatedAt = DateTime.UtcNow
                         };
                         _dbContext.AISummarizationLogs.Add(aiLog);
