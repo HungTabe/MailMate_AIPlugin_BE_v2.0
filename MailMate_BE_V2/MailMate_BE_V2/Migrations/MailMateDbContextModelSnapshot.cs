@@ -173,6 +173,11 @@ namespace MailMate_BE_V2.Migrations
                     b.Property<Guid>("EmailAccountId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("From")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<bool>("IsSpam")
                         .HasColumnType("bit");
 
