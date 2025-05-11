@@ -295,5 +295,36 @@ namespace MailMate_BE_V2.Services
             emailAccount.AccessToken = tokenResponse["access_token"];
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<List<EmailDto>> GetTop10InboxEmailsAsync(string userId)
+        {
+            var targetEmailAccountId = await _dbContext.EmailAccounts
+                .FirstOrDefaultAsync(a => a.UserId == Guid.Parse(userId));
+               
+
+            var emails = await _dbContext.Emails
+                .Where(e => e.EmailAccountId == targetEmailAccountId.EmailAccountId)
+                .OrderByDescending(e => e.ReceivedAt)
+                .Take(10)
+                .Select(e => new EmailDto
+                {
+                    EmailId = e.EmailId,
+                    From = e.From,
+                    Subject = e.Subject,
+                    Body = e.Body,
+                    Summary = e.Summary,
+                    IsSpam = e.IsSpam,
+                    ReceivedAt = e.ReceivedAt,
+                })
+                .ToListAsync();
+
+            if (emails == null)
+            {
+                throw new Exception("Email not found or you do not have permission to access it.");
+            }
+
+            return emails;
+
+        }
     }
 }

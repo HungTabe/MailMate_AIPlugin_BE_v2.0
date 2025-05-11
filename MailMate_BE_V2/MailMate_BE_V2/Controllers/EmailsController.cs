@@ -74,5 +74,26 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { message = "An error occurred while fetching email", details = ex.Message });
             }
         }
+
+        [HttpGet("10inbox")]
+        public async Task<ActionResult<List<EmailDto>>> GetTop10Inbox()
+        {
+            try
+            {
+                var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { message = "Invalid user" });
+                }
+
+                var emails = await _emailService.GetTop10InboxEmailsAsync(userId);
+                return Ok(emails);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching emails", details = ex.Message });
+            }
+        }
     }
 }
