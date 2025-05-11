@@ -29,5 +29,8 @@ namespace MailMate_BE_V2.Models
         public virtual EmailAccount EmailAccount { get; set; }
 
         public virtual ICollection<EmailTagMapping> EmailTagMappings { get; set; }
+
+        public virtual ICollection<EmailSummary> EmailSummaries { get; set; } // Thêm thuộc tính navigation
+
     }
 }

@@ -22,6 +22,8 @@ namespace MailMate_BE_V2.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Log> Logs { get; set; }
         public DbSet<MarketingLead> MarketingLeads { get; set; }
+        public DbSet<EmailSummary> EmailSummaries { get; set; }
+        public DbSet<AISummarizationLog> AISummarizationLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -133,6 +135,18 @@ namespace MailMate_BE_V2.Data
 
             modelBuilder.Entity<MarketingLead>()
                 .HasIndex(ml => ml.Email);
+
+            // EmailSummaries
+            modelBuilder.Entity<EmailSummary>()
+                .HasOne(es => es.Email)
+                .WithMany(e => e.EmailSummaries)
+                .HasForeignKey(es => es.EmailId);
+
+            // AISummarizationLogs
+            modelBuilder.Entity<AISummarizationLog>()
+                .HasOne(al => al.Email)
+                .WithMany()
+                .HasForeignKey(al => al.EmailId);
         }
     }
 }
