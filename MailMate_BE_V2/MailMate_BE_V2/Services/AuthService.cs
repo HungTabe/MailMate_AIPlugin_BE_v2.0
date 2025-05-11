@@ -110,5 +110,28 @@ namespace MailMate_BE_V2.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public async Task<UserProfileDto> GetUserProfileAsync(string userId)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserId == Guid.Parse(userId));
+
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            return new UserProfileDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FullName = user.FullName,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                SubscriptionPlan = user.SubscriptionPlan,
+                SubscriptionEndDate = user.SubscriptionEndDate,
+                CreatedAt = user.CreatedAt
+            };
+        }
     }
 }

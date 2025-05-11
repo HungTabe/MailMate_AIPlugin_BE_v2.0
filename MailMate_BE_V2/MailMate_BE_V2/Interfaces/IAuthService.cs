@@ -7,5 +7,6 @@ namespace MailMate_BE_V2.Interfaces
     {
         Task<LoginResponse> LoginAsync(string email, string password);
         Task<RegisterResponse> RegisterAsync(RegisterRequest request);
+        Task<UserProfileDto> GetUserProfileAsync(string userId);
     }
 }
