@@ -6,5 +6,7 @@ namespace MailMate_BE_V2.Interfaces
     {
         Task<List<EmailDto>> GetInboxEmailsAsync(Guid userId);
         Task<EmailDto> GetEmailByIdAsync(string emailId, string userId);
+        Task<List<EmailDto>> GetTop10InboxEmailsAsync(string userId);
+
     }
 }
