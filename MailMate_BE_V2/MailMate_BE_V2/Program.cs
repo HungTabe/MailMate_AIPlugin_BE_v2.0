@@ -17,6 +17,7 @@ builder.Services.AddHttpClient<IEmailAccountService, EmailAccountService>();
 builder.Services.AddScoped<EmailUtility>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IEmailAccountService, EmailAccountService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IHuggingFaceService, HuggingFaceService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();

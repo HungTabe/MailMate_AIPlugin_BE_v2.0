@@ -3,6 +3,7 @@ using MailMate_BE_V2.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace MailMate_BE_V2.Controllers
 {
@@ -53,5 +54,30 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Message = "An error occurred while processing the OAuth callback." });
             }
         }
+        [HttpGet("list")]
+        [Authorize]
+        public async Task<ActionResult<List<EmailAccountListResponse>>> GetEmailAccounts()
+        {
+            // Lấy userId từ token
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Kiểm tra userId có hợp lệ không
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { Success = false, Message = "Không thể lấy userId từ token JWT." });
+            }
+
+            try
+            {
+                var response = await _emailAccountService.GetEmailAccountsAsync(userId);
+                return Ok(new { Success = true, Data = response });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi lấy danh sách tài khoản email: {ex.Message}" });
+            }
+        }
+
     }
 }
