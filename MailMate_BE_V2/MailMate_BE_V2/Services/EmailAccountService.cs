@@ -132,6 +132,27 @@ namespace MailMate_BE_V2.Services
 
             return emailAccounts;
         }
+        public async Task<EmailAccountDetailResponse> GetEmailAccountByIdAsync(Guid userId, Guid emailAccountId)
+        {
+            var emailAccount = await _context.EmailAccounts
+                .Where(ea => ea.EmailAccountId == emailAccountId && ea.UserId == userId)
+                .Select(ea => new EmailAccountDetailResponse
+                {
+                    EmailAccountId = ea.EmailAccountId,
+                    UserId = ea.UserId,
+                    Provider = ea.Provider,
+                    ConnectedAt = ea.ConnectedAt,
+                    //IsActive = ea.IsActive Giả định có cột IsActive
+                })
+                .FirstOrDefaultAsync();
+
+            if (emailAccount == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy tài khoản email hoặc bạn không có quyền truy cập.");
+            }
+
+            return emailAccount;
+        }
 
     }
 }

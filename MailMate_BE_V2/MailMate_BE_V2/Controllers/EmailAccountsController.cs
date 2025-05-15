@@ -78,6 +78,34 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi lấy danh sách tài khoản email: {ex.Message}" });
             }
         }
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<ActionResult<EmailAccountDetailResponse>> GetEmailAccountById(Guid id)
+        {
+            // Lấy userId từ token
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { Success = false, Message = "Không thể lấy userId từ token JWT." });
+            }
+
+            try
+            {
+                var response = await _emailAccountService.GetEmailAccountByIdAsync(userId, id);
+                return Ok(new { Success = true, Data = response });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Success = false, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi lấy chi tiết tài khoản email: {ex.Message}" });
+            }
+        }
+
 
     }
 }
