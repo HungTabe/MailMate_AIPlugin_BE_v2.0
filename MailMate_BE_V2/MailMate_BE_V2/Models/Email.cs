@@ -11,10 +11,13 @@ namespace MailMate_BE_V2.Models
         [Required]
         public Guid EmailAccountId { get; set; }
 
+        [StringLength(100)]
+        public string? MessageId { get; set; }
+
         [StringLength(255)]
         public string Subject { get; set; }
 
-        [StringLength(100)]
+        [StringLength(255)]
         public string From { get; set; }
 
         public string Body { get; set; }
@@ -33,7 +36,7 @@ namespace MailMate_BE_V2.Models
 
         public virtual ICollection<EmailTagMapping> EmailTagMappings { get; set; }
 
-        public virtual ICollection<EmailSummary> EmailSummaries { get; set; } // Thêm thuộc tính navigation
+        public virtual ICollection<EmailSummary> EmailSummaries { get; set; }
 
     }
 }

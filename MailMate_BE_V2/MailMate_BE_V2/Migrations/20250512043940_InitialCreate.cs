@@ -198,8 +198,9 @@ namespace MailMate_BE_V2.Migrations
                 {
                     EmailId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     EmailAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MessageId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Subject = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    From = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    From = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Summary = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsSpam = table.Column<bool>(type: "bit", nullable: false),
