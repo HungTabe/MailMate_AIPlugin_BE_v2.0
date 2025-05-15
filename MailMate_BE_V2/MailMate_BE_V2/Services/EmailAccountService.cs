@@ -153,6 +153,19 @@ namespace MailMate_BE_V2.Services
 
             return emailAccount;
         }
+        public async Task DeleteEmailAccountAsync(Guid userId, Guid emailAccountId)
+        {
+            var emailAccount = await _context.EmailAccounts
+                .FirstOrDefaultAsync(ea => ea.EmailAccountId == emailAccountId && ea.UserId == userId);
+
+            if (emailAccount == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy tài khoản email hoặc bạn không có quyền truy cập.");
+            }
+
+            _context.EmailAccounts.Remove(emailAccount); // Xóa bản ghi
+            await _context.SaveChangesAsync();
+        }
 
     }
 }

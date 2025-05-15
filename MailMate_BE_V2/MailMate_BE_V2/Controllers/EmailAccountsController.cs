@@ -80,7 +80,9 @@ namespace MailMate_BE_V2.Controllers
         }
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ActionResult<EmailAccountDetailResponse>> GetEmailAccountById(Guid id)
+        [HttpDelete("{id}")]
+        [Authorize]
+        public async Task<IActionResult> DisconnectEmailAccount(Guid id)
         {
             // Lấy userId từ token
             var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
@@ -93,8 +95,8 @@ namespace MailMate_BE_V2.Controllers
 
             try
             {
-                var response = await _emailAccountService.GetEmailAccountByIdAsync(userId, id);
-                return Ok(new { Success = true, Data = response });
+                await _emailAccountService.DeleteEmailAccountAsync(userId, id); // Gọi phương thức mới
+                return Ok(new { Success = true, Message = "Tài khoản email đã được xóa." });
             }
             catch (KeyNotFoundException ex)
             {
@@ -102,10 +104,9 @@ namespace MailMate_BE_V2.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi lấy chi tiết tài khoản email: {ex.Message}" });
+                return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi xóa tài khoản email: {ex.Message}" });
             }
         }
-
 
     }
 }
