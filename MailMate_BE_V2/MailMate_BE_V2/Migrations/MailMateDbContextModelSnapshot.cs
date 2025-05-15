@@ -175,11 +175,15 @@ namespace MailMate_BE_V2.Migrations
 
                     b.Property<string>("From")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("IsSpam")
                         .HasColumnType("bit");
+
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("ReceivedAt")
                         .HasColumnType("datetime2");

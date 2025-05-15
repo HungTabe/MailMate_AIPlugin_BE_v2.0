@@ -162,6 +162,7 @@ namespace MailMate_BE_V2.Services
                         var newEmail = new Email
                         {
                             EmailId = email.Id,
+                            MessageId = message.Id,
                             EmailAccountId = emailAccount.EmailAccountId,
                             Subject = subject,
                             Body = body,
@@ -203,6 +204,7 @@ namespace MailMate_BE_V2.Services
                         emails.Add(new EmailDto
                         {
                             EmailId = newEmail.EmailId,
+                            MessageId = newEmail.MessageId,
                             Subject = newEmail.Subject,
                             Summary = newEmail.Summary,
                             IsSpam = newEmail.IsSpam,
@@ -215,6 +217,7 @@ namespace MailMate_BE_V2.Services
                         emails.Add(new EmailDto
                         {
                             EmailId = existingEmail.EmailId,
+                            MessageId = existingEmail.MessageId,
                             Subject = existingEmail.Subject,
                             Summary = existingEmail.Summary,
                             IsSpam = existingEmail.IsSpam,
@@ -263,6 +266,7 @@ namespace MailMate_BE_V2.Services
             return new EmailDto
             {
                 EmailId = email.EmailId,
+                MessageId = email.MessageId,
                 Subject = email.Subject,
                 Body = email.Body,
                 Summary = email.Summary,
@@ -309,6 +313,8 @@ namespace MailMate_BE_V2.Services
                 .Select(e => new EmailDto
                 {
                     EmailId = e.EmailId,
+                    MessageId = e.MessageId,
+                    EmailDetailGGLink = $"https://mail.google.com/mail/u/0/?ogbl#inbox/{e.MessageId}",
                     From = e.From,
                     Subject = e.Subject,
                     Body = e.Body,
