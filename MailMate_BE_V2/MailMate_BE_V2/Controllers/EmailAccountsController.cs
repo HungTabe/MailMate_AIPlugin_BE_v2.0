@@ -1,22 +1,27 @@
-﻿using MailMate_BE_V2.DTOs;
+﻿using MailMate_BE_V2.Data; // Thêm dòng này để sử dụng MailMateDbContext
+using MailMate_BE_V2.Data.EnumData;
+using MailMate_BE_V2.DTOs;
 using MailMate_BE_V2.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore; // Thêm dòng này để sử dụng FirstOrDefaultAsync
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+
 
 namespace MailMate_BE_V2.Controllers
+
 {
     [Route("api/email-accounts")]
     [ApiController]
-    //[Authorize] // Yêu cầu người dùng đăng nhập - Hien tai develop nen ko bat Autho
     public class EmailAccountsController : ControllerBase
     {
         private readonly IEmailAccountService _emailAccountService;
-
-        public EmailAccountsController(IEmailAccountService emailAccountService)
+        private readonly MailMateDbContext _context; // Thêm dòng này để sử dụng MailMateDbContext
+        public EmailAccountsController(IEmailAccountService emailAccountService, MailMateDbContext context)
         {
             _emailAccountService = emailAccountService;
+            _context = context; // Inject MailMateDbContext vào đây
         }
 
         [HttpGet("connect")]
@@ -54,23 +59,55 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Message = "An error occurred while processing the OAuth callback." });
             }
         }
-        [HttpGet("list")]
-        [Authorize]
+
+        /*[HttpGet("list")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<EmailAccountListResponse>>> GetEmailAccounts()
         {
-            // Lấy userId từ token
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            // Kiểm tra userId có hợp lệ không
-            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            var userIdResult = GetUserId();
+            if (!userIdResult.IsSuccess)
             {
-                return Unauthorized(new { Success = false, Message = "Không thể lấy userId từ token JWT." });
+                return Unauthorized(new { Success = false, Message = userIdResult.ErrorMessage });
             }
 
             try
             {
-                var response = await _emailAccountService.GetEmailAccountsAsync(userId);
+                // Kiểm tra quyền admin
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.UserId == userIdResult.UserId);
+                if (user == null)
+                {
+                    return NotFound(new { Success = false, Message = "Người dùng không tồn tại." });
+                }
+
+                if (user.Role != UserRole.Admin) // Sửa từ "Admin" thành UserRole.Admin
+                {
+                    return StatusCode(403, new { Success = false, Message = "Bạn không có quyền truy cập API này." });
+                }
+
+                // Admin: Lấy danh sách tất cả tài khoản email
+                var response = await _emailAccountService.GetAllEmailAccountsAsync();
+                return Ok(new { Success = true, Data = response });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi lấy danh sách tài khoản email: {ex.Message}" });
+            }
+        }*/
+        [HttpGet("list")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<List<EmailAccountListResponse>>> GetEmailAccounts()
+        {
+            var userIdResult = GetUserId();
+            if (!userIdResult.IsSuccess)
+            {
+                return Unauthorized(new { Success = false, Message = userIdResult.ErrorMessage });
+            }
+
+            try
+            {
+                // Không cần kiểm tra quyền admin nữa, vì [Authorize(Roles = "Admin")] đã xử lý
+                var response = await _emailAccountService.GetAllEmailAccountsAsync();
                 return Ok(new { Success = true, Data = response });
             }
             catch (Exception ex)
@@ -78,24 +115,20 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi lấy danh sách tài khoản email: {ex.Message}" });
             }
         }
-        [HttpGet("{id}")]
-        [Authorize]
+
         [HttpDelete("{id}")]
         [Authorize]
-        public async Task<IActionResult> DisconnectEmailAccount(Guid id)
+        public async Task<IActionResult> DeleteEmailAccount(Guid id)
         {
-            // Lấy userId từ token
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            var userIdResult = GetUserId();
+            if (!userIdResult.IsSuccess)
             {
-                return Unauthorized(new { Success = false, Message = "Không thể lấy userId từ token JWT." });
+                return Unauthorized(new { Success = false, Message = userIdResult.ErrorMessage });
             }
 
             try
             {
-                await _emailAccountService.DeleteEmailAccountAsync(userId, id); // Gọi phương thức mới
+                await _emailAccountService.DeleteEmailAccountAsync(userIdResult.UserId, id);
                 return Ok(new { Success = true, Message = "Tài khoản email đã được xóa." });
             }
             catch (KeyNotFoundException ex)
@@ -108,5 +141,17 @@ namespace MailMate_BE_V2.Controllers
             }
         }
 
+        private (bool IsSuccess, Guid UserId, string ErrorMessage) GetUserId()
+        {
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return (false, Guid.Empty, "Không thể lấy userId từ token JWT.");
+            }
+
+            return (true, userId, null);
+        }
     }
 }

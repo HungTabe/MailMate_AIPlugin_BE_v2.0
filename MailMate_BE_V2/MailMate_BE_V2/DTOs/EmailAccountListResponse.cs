@@ -5,5 +5,7 @@
         public Guid EmailAccountId { get; set; }
         public string Provider { get; set; }
         public DateTime ConnectedAt { get; set; }
+        public string Fullname { get; set; }
+        public string UserEmail { get; set; }
     }
 }

@@ -120,6 +120,10 @@ namespace MailMate_BE_V2.Services
             {
                 throw new Exception("User not found.");
             }
+            // Lấy Provider từ bảng EmailAccounts (lấy bản ghi đầu tiên nếu có nhiều)
+            var emailAccount = await _context.EmailAccounts
+                .Where(ea => ea.UserId == user.UserId)
+                .FirstOrDefaultAsync();
 
             return new UserProfileDto
             {
@@ -130,7 +134,8 @@ namespace MailMate_BE_V2.Services
                 IsActive = user.IsActive,
                 SubscriptionPlan = user.SubscriptionPlan,
                 SubscriptionEndDate = user.SubscriptionEndDate,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                Provider = emailAccount?.Provider // Lấy Provider, nếu không có thì để null
             };
         }
     }

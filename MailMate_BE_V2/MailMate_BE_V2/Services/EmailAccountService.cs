@@ -28,7 +28,7 @@ namespace MailMate_BE_V2.Services
         {
             var clientId = _configuration["GoogleOAuth:ClientId"];
             var redirectUri = _configuration["GoogleOAuth:RedirectUri"];
-            var scopes = new[] { "https://www.googleapis.com/auth/gmail.readonly", "email", "profile" }; // Thêm scopes khác nếu cần
+            var scopes = new[] { "https://www.googleapis.com/auth/gmail.readonly", "email", "profile" };
 
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
             {
@@ -66,16 +66,19 @@ namespace MailMate_BE_V2.Services
                     "https://oauth2.googleapis.com/token",
                     new FormUrlEncodedContent(new Dictionary<string, string>
                     {
-                        { "code", code },
-                        { "client_id", clientId },
-                        { "client_secret", clientSecret },
-                        { "redirect_uri", redirectUri },
-                        { "grant_type", "authorization_code" }
+                { "code", code },
+                { "client_id", clientId },
+                { "client_secret", clientSecret },
+                { "redirect_uri", redirectUri },
+                { "grant_type", "authorization_code" }
                     })
                 );
 
                 if (!tokenResponse.IsSuccessStatusCode)
-                    throw new HttpRequestException($"Failed to exchange code for token: {await tokenResponse.Content.ReadAsStringAsync()}");
+                {
+                    var errorContent = await tokenResponse.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Failed to exchange code for token: {errorContent}");
+                }
 
                 var tokenData = await tokenResponse.Content.ReadFromJsonAsync<DTOs.TokenResponse>();
 
@@ -84,7 +87,10 @@ namespace MailMate_BE_V2.Services
                     $"https://www.googleapis.com/oauth2/v2/userinfo?access_token={tokenData.access_token}"
                 );
                 if (!userInfoResponse.IsSuccessStatusCode)
-                    throw new HttpRequestException("Failed to fetch user info.");
+                {
+                    var errorContent = await userInfoResponse.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Failed to fetch user info: {errorContent}");
+                }
 
                 var userInfo = await userInfoResponse.Content.ReadFromJsonAsync<UserInfoResponse>();
 
@@ -99,7 +105,7 @@ namespace MailMate_BE_V2.Services
                 var emailAccount = new EmailAccount
                 {
                     EmailAccountId = Guid.NewGuid(),
-                    UserId = user.UserId, // Chuyển từ string sang Guid
+                    UserId = user.UserId,
                     Provider = "Google",
                     AccessToken = tokenData.access_token,
                     RefreshToken = tokenData.refresh_token,
@@ -109,50 +115,41 @@ namespace MailMate_BE_V2.Services
                 _context.EmailAccounts.Add(emailAccount);
                 await _context.SaveChangesAsync();
 
-                // Trả về URL chuyển hướng thành công
                 return successOAuthUri;
+            }
+            catch (HttpRequestException ex)
+            {
+                // In lỗi chi tiết để debug
+                Console.WriteLine($"OAuth Error: {ex.Message}");
+                return $"https://mailmate-dashboard.onrender.com/email-connected?error={Uri.EscapeDataString(ex.Message)}";
             }
             catch (Exception ex)
             {
-                // Trả về URL lỗi
+                // In lỗi chi tiết để debug
+                Console.WriteLine($"General Error: {ex.Message}");
                 return $"https://mailmate-dashboard.onrender.com/email-connected?error={Uri.EscapeDataString(ex.Message)}";
             }
         }
-        public async Task<List<EmailAccountListResponse>> GetEmailAccountsAsync(Guid userId)
+        public async Task<List<EmailAccountListResponse>> GetAllEmailAccountsAsync()
         {
             var emailAccounts = await _context.EmailAccounts
-                .Where(ea => ea.UserId == userId)
-                .Select(ea => new EmailAccountListResponse
-                {
-                    EmailAccountId = ea.EmailAccountId,
-                    Provider = ea.Provider,
-                    ConnectedAt = ea.ConnectedAt
-                })
+                .Join(
+                    _context.Users,
+                    ea => ea.UserId,
+                    u => u.UserId,
+                    (ea, u) => new EmailAccountListResponse
+                    {
+                        EmailAccountId = ea.EmailAccountId,
+                        Provider = ea.Provider,
+                        ConnectedAt = ea.ConnectedAt,
+                        Fullname = u.FullName, // Lấy từ bảng Users
+                        UserEmail = u.Email    // Lấy từ bảng Users
+                    })
                 .ToListAsync();
 
             return emailAccounts;
         }
-        public async Task<EmailAccountDetailResponse> GetEmailAccountByIdAsync(Guid userId, Guid emailAccountId)
-        {
-            var emailAccount = await _context.EmailAccounts
-                .Where(ea => ea.EmailAccountId == emailAccountId && ea.UserId == userId)
-                .Select(ea => new EmailAccountDetailResponse
-                {
-                    EmailAccountId = ea.EmailAccountId,
-                    UserId = ea.UserId,
-                    Provider = ea.Provider,
-                    ConnectedAt = ea.ConnectedAt,
-                    //IsActive = ea.IsActive Giả định có cột IsActive
-                })
-                .FirstOrDefaultAsync();
 
-            if (emailAccount == null)
-            {
-                throw new KeyNotFoundException("Không tìm thấy tài khoản email hoặc bạn không có quyền truy cập.");
-            }
-
-            return emailAccount;
-        }
         public async Task DeleteEmailAccountAsync(Guid userId, Guid emailAccountId)
         {
             var emailAccount = await _context.EmailAccounts

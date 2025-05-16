@@ -12,5 +12,6 @@ namespace MailMate_BE_V2.DTOs
         public SubscriptionPlan SubscriptionPlan { get; set; }
         public DateTime? SubscriptionEndDate { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Provider { get; set; }
     }
 }
