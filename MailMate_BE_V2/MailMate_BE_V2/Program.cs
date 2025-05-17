@@ -1,11 +1,13 @@
 ﻿using MailMate_BE_V2.Data;
 using MailMate_BE_V2.DTOs.Gemini;
+using MailMate_BE_V2.Models.PayOS;
 using MailMate_BE_V2.Interfaces;
 using MailMate_BE_V2.Services;
 using MailMate_BE_V2.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Net.payOS.Constants;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,9 +22,15 @@ builder.Services.AddScoped<IEmailAccountService, EmailAccountService>();
 builder.Services.AddScoped<IHuggingFaceService, HuggingFaceService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // Cấu hình Gemini settings
 builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("Gemini"));
+
+// Đăng ký PayOS configuration
+builder.Services.Configure<MailMate_BE_V2.Models.PayOS.PayOSConfig>(builder.Configuration.GetSection("PayOS"));
+
+// Đăng ký service
 
 // Add logging
 builder.Services.AddLogging(logging =>
