@@ -332,5 +332,50 @@ namespace MailMate_BE_V2.Services
             return emails;
 
         }
+        public async Task AddTagToEmailAsync(Guid userId, string emailId, string tagName)
+        {
+            // Kiểm tra email có tồn tại và thuộc về user không
+            // Tái sử dụng logic kiểm tra quyền từ GetEmailByIdAsync
+            var email = await _dbContext.Emails
+                .Include(e => e.EmailAccount)
+                .FirstOrDefaultAsync(e => e.EmailId == emailId && e.EmailAccount.UserId == userId);
+            if (email == null)
+            {
+                throw new KeyNotFoundException("Email không tồn tại hoặc bạn không có quyền truy cập.");
+            }
+
+            // Kiểm tra thẻ đã tồn tại chưa
+            var tag = await _dbContext.EmailTags
+                .FirstOrDefaultAsync(t => t.TagName == tagName);
+            if (tag == null)
+            {
+                // Nếu thẻ chưa tồn tại, tạo mới
+                tag = new EmailTag
+                {
+                    EmailTagId = Guid.NewGuid(),
+                    TagName = tagName
+                };
+                _dbContext.EmailTags.Add(tag);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            // Kiểm tra xem email đã có thẻ này chưa
+            var emailTagMapping = await _dbContext.EmailTagMappings
+                .FirstOrDefaultAsync(etm => etm.EmailId == emailId && etm.EmailTagId == tag.EmailTagId);
+            if (emailTagMapping != null)
+            {
+                // Nếu đã có thẻ, không làm gì thêm
+                return;
+            }
+
+            // Gắn thẻ cho email
+            emailTagMapping = new EmailTagMapping
+            {
+                EmailId = emailId,
+                EmailTagId = tag.EmailTagId
+            };
+            _dbContext.EmailTagMappings.Add(emailTagMapping);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

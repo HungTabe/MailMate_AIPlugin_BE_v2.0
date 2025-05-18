@@ -95,5 +95,37 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { message = "An error occurred while fetching emails", details = ex.Message });
             }
         }
+        [HttpPost("{id}/tags")]
+        public async Task<IActionResult> AddTagToEmail(string id, [FromBody] AddTagRequest request)
+        {
+            // Kiểm tra request hợp lệ
+            if (!ModelState.IsValid || string.IsNullOrEmpty(request.TagName))
+            {
+                return BadRequest(new { Success = false, Message = "Tên thẻ không được để trống." });
+            }
+
+            try
+            {
+                // Tái sử dụng logic lấy userId từ token
+                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized(new { Success = false, Message = "Không thể lấy userId từ token JWT." });
+                }
+
+                // Gọi service để gắn thẻ
+                await _emailService.AddTagToEmailAsync(userId, id, request.TagName);
+                return Ok(new { Success = true, Message = "Thẻ đã được gắn thành công." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Success = false, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi gắn thẻ cho email: {ex.Message}" });
+            }
+        }
     }
 }
