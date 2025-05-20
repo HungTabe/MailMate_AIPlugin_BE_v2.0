@@ -8,6 +8,8 @@ namespace MailMate_BE_V2.Interfaces
         Task<EmailDto> GetEmailByIdAsync(string emailId, string userId);
         Task<List<EmailDto>> GetTop10InboxEmailsAsync(string userId);
         Task AddTagToEmailAsync(Guid userId, string emailId, string tagName);
-
+        Task RemoveTagFromEmailAsync(Guid userId, string emailId, Guid tagId);
+        Task MarkEmailAsSpamAsync(Guid userId, string emailId);
+        Task SendEmailAsync(Guid userId, SendEmailRequest request);
     }
 }

@@ -127,5 +127,87 @@ namespace MailMate_BE_V2.Controllers
                 return StatusCode(500, new { Success = false, Message = $"Đã xảy ra lỗi khi gắn thẻ cho email: {ex.Message}" });
             }
         }
+        [HttpDelete("{id}/tags/{tagId}")]
+        public async Task<IActionResult> RemoveTagFromEmail(string id, Guid tagId)
+        {
+            try
+            {
+                // Lấy userId từ token
+                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized(new { Success = false, Message = "Không thể lấy thông tin người dùng." });
+                }
+
+                // Gọi service để xóa nhãn
+                await _emailService.RemoveTagFromEmailAsync(userId, id, tagId);
+                return Ok(new { Success = true, Message = "Đã gỡ nhãn thành công." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Success = false, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+        [HttpPost("{id}/mark-spam")]
+        public async Task<IActionResult> MarkEmailAsSpam(string id)
+        {
+            try
+            {
+                // Lấy userId từ token
+                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized(new { Success = false, Message = "Không thể lấy thông tin người dùng." });
+                }
+
+                // Gọi service để đánh dấu spam
+                await _emailService.MarkEmailAsSpamAsync(userId, id);
+                return Ok(new { Success = true, Message = "Đã đánh dấu email là spam." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Success = false, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+        [HttpPost("send")]
+        public async Task<IActionResult> SendEmail([FromBody] SendEmailRequest request)
+        {
+            try
+            {
+                // Lấy userId từ token
+                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized(new { Success = false, Message = "Không thể lấy thông tin người dùng." });
+                }
+
+                // Gọi service để gửi email
+                await _emailService.SendEmailAsync(userId, request);
+                return Ok(new { Success = true, Message = "Email đã được gửi thành công." });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Success = false, Message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Success = false, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
     }
 }

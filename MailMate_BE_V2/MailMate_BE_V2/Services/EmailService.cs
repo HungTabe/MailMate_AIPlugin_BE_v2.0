@@ -11,6 +11,10 @@ using MailMate_BE_V2.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Text;
+using System.Net.Mail;
+using Google.Apis.Util;
+
+
 
 namespace MailMate_BE_V2.Services
 {
@@ -375,6 +379,202 @@ namespace MailMate_BE_V2.Services
                 EmailTagId = tag.EmailTagId
             };
             _dbContext.EmailTagMappings.Add(emailTagMapping);
+            await _dbContext.SaveChangesAsync();
+        }
+        public async Task RemoveTagFromEmailAsync(Guid userId, string emailId, Guid tagId)
+        {
+            // Kiểm tra xem thư có tồn tại và thuộc về người dùng không
+            var email = await _dbContext.Emails
+                .Include(e => e.EmailAccount)
+                .FirstOrDefaultAsync(e => e.EmailId == emailId && e.EmailAccount.UserId == userId);
+            if (email == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy thư hoặc bạn không có quyền.");
+            }
+
+            // Kiểm tra xem nhãn có tồn tại không
+            var tag = await _dbContext.EmailTags
+                .FirstOrDefaultAsync(t => t.EmailTagId == tagId);
+            if (tag == null)
+            {
+                throw new KeyNotFoundException("Nhãn không tồn tại.");
+            }
+
+            // Kiểm tra xem thư có dán nhãn này không
+            var emailTagMapping = await _dbContext.EmailTagMappings
+                .FirstOrDefaultAsync(etm => etm.EmailId == emailId && etm.EmailTagId == tagId);
+            if (emailTagMapping == null)
+            {
+                throw new KeyNotFoundException("Thư này không có nhãn đó.");
+            }
+
+            // Xóa liên kết giữa thư và nhãn
+            _dbContext.EmailTagMappings.Remove(emailTagMapping);
+            await _dbContext.SaveChangesAsync();
+
+            // Ghi lại hành động vào nhật ký
+            _dbContext.Logs.Add(new Log
+            {
+                LogId = Guid.NewGuid(),
+                UserId = userId,
+                Action = "Gỡ nhãn khỏi thư",
+                Timestamp = DateTime.UtcNow,
+                Metadata = System.Text.Json.JsonSerializer.Serialize(new { EmailId = emailId, TagId = tagId })
+            });
+            await _dbContext.SaveChangesAsync();
+        }
+        public async Task MarkEmailAsSpamAsync(Guid userId, string emailId)
+        {
+            // Kiểm tra xem thư có tồn tại và thuộc về người dùng không
+            var email = await _dbContext.Emails
+                .Include(e => e.EmailAccount)
+                .FirstOrDefaultAsync(e => e.EmailId == emailId && e.EmailAccount.UserId == userId);
+            if (email == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy thư hoặc bạn không có quyền.");
+            }
+
+            // Kiểm tra xem email đã là spam chưa
+            if (email.IsSpam)
+            {
+                return; // Không cần làm gì nếu đã là spam
+            }
+
+            // Đánh dấu email là spam
+            email.IsSpam = true;
+            _dbContext.Emails.Update(email);
+            await _dbContext.SaveChangesAsync();
+
+            // Ghi lại hành động vào nhật ký
+            _dbContext.Logs.Add(new Log
+            {
+                LogId = Guid.NewGuid(),
+                UserId = userId,
+                Action = "Đánh dấu email là spam",
+                Timestamp = DateTime.UtcNow,
+                Metadata = System.Text.Json.JsonSerializer.Serialize(new { EmailId = emailId })
+            });
+            await _dbContext.SaveChangesAsync();
+        }
+        public async Task SendEmailAsync(Guid userId, SendEmailRequest request)
+        {
+            // Kiểm tra dữ liệu đầu vào
+            if (string.IsNullOrEmpty(request.To) || string.IsNullOrEmpty(request.Subject) || string.IsNullOrEmpty(request.Body))
+            {
+                throw new ArgumentException("Người nhận, tiêu đề và nội dung không được để trống.");
+            }
+
+            // Kiểm tra tài khoản email
+            var emailAccount = await _dbContext.EmailAccounts
+                .FirstOrDefaultAsync(ea => ea.EmailAccountId == request.EmailAccountId && ea.UserId == userId && ea.Provider == "Google");
+            if (emailAccount == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy tài khoản email hoặc bạn không có quyền.");
+            }
+
+            // Kiểm tra địa chỉ email của tài khoản (thuộc tính Email)
+            if (string.IsNullOrEmpty(emailAccount.Email))
+            {
+                throw new ArgumentException("Địa chỉ email của tài khoản không được để trống.");
+            }
+
+            // Kiểm tra định dạng email người gửi (emailAccount.Email)
+            try
+            {
+                var senderAddress = new MailAddress(emailAccount.Email);
+            }
+            catch (FormatException)
+            {
+                throw new ArgumentException("Địa chỉ email của tài khoản không hợp lệ.");
+            }
+
+            // Kiểm tra định dạng email người nhận (request.To)
+            try
+            {
+                var recipientAddress = new MailAddress(request.To);
+            }
+            catch (FormatException)
+            {
+                throw new ArgumentException("Địa chỉ email người nhận không hợp lệ.");
+            }
+
+            // Thiết lập OAuth2 client
+            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = _configuration["GoogleOAuth:ClientId"],
+                    ClientSecret = _configuration["GoogleOAuth:ClientSecret"]
+                },
+                Scopes = new[] { "https://www.googleapis.com/auth/gmail.send" },
+                DataStore = new NullDataStore()
+            });
+
+            var token = new Google.Apis.Auth.OAuth2.Responses.TokenResponse
+            {
+                AccessToken = emailAccount.AccessToken,
+                RefreshToken = emailAccount.RefreshToken,
+                Scope = "https://www.googleapis.com/auth/gmail.send",
+                TokenType = "Bearer",
+                ExpiresInSeconds = 3600
+            };
+
+            // Kiểm tra và refresh token nếu cần
+            if (token.IsExpired(SystemClock.Default))
+            {
+                await RefreshAccessTokenAsync(emailAccount);
+                token.AccessToken = emailAccount.AccessToken;
+            }
+
+            var credential = new UserCredential(flow, "me", token);
+
+            // Tạo Gmail API client
+            var gmailService = new GmailService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "MailMate",
+            });
+
+            // Tạo email message bằng chuỗi MIME thủ công
+            var emailMessage = new Google.Apis.Gmail.v1.Data.Message();
+            var mimeString = $"From: {emailAccount.Email}\r\n" +
+                             $"To: {request.To}\r\n" +
+                             $"Subject: {request.Subject}\r\n" +
+                             "Content-Type: text/plain; charset=utf-8\r\n" +
+                             "\r\n" +
+                             $"{request.Body}";
+            emailMessage.Raw = Convert.ToBase64String(Encoding.UTF8.GetBytes(mimeString))
+                .Replace('+', '-').Replace('/', '_'); // URL-safe base64
+
+            // Gửi email
+            var sendRequest = gmailService.Users.Messages.Send(emailMessage, "me");
+            var sentMessage = await sendRequest.ExecuteAsync();
+
+            // Lưu email vào bảng Emails
+            var newEmail = new Email
+            {
+                EmailId = sentMessage.Id,
+                MessageId = sentMessage.Id,
+                EmailAccountId = emailAccount.EmailAccountId,
+                Subject = request.Subject,
+                Body = request.Body,
+                From = emailAccount.Email, // Dùng Email để ghi người gửi
+                Summary = "", // Không cần tóm tắt
+                IsSpam = false,
+                ReceivedAt = DateTime.UtcNow
+            };
+            _dbContext.Emails.Add(newEmail);
+
+            // Ghi log hành động
+            _dbContext.Logs.Add(new Log
+            {
+                LogId = Guid.NewGuid(),
+                UserId = userId,
+                Action = "Gửi email thủ công",
+                Timestamp = DateTime.UtcNow,
+                Metadata = System.Text.Json.JsonSerializer.Serialize(new { EmailId = sentMessage.Id, To = request.To, From = emailAccount.Email })
+            });
+
             await _dbContext.SaveChangesAsync();
         }
     }
