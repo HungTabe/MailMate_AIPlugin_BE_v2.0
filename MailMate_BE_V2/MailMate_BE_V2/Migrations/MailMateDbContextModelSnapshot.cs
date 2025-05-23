@@ -212,8 +212,8 @@ namespace MailMate_BE_V2.Migrations
 
                     b.Property<string>("AccessToken")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime>("ConnectedAt")
                         .HasColumnType("datetime2");

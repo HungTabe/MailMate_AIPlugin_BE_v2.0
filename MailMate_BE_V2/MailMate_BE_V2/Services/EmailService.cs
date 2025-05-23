@@ -80,7 +80,7 @@ namespace MailMate_BE_V2.Services
 
             try
             {
-                // Fetch the top 20 emails from the inbox
+                // Fetch the top 10 emails from the inbox
                 var request = gmailService.Users.Messages.List("me");
                 request.Q = "in:inbox";
                 request.MaxResults = 10;
@@ -282,25 +282,31 @@ namespace MailMate_BE_V2.Services
 
         private async Task RefreshAccessTokenAsync(EmailAccount emailAccount)
         {
+            if (string.IsNullOrEmpty(emailAccount.RefreshToken))
+            {
+                throw new Exception("Refresh token is missing or invalid.");
+            }
+
             var request = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token");
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                { "client_id", _configuration["Google:ClientId"] },
-                { "client_secret", _configuration["Google:ClientSecret"] },
-                { "refresh_token", emailAccount.RefreshToken },
-                { "grant_type", "refresh_token" }
-            });
+    {
+        { "client_id", _configuration["GoogleOAuth:ClientId"] },
+        { "client_secret", _configuration["GoogleOAuth:ClientSecret"] },
+        { "refresh_token", emailAccount.RefreshToken },
+        { "grant_type", "refresh_token" }
+    });
             request.Content = content;
 
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception("Failed to refresh access token.");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to refresh access token. Error: {errorContent}");
             }
 
             var json = await response.Content.ReadAsStringAsync();
-            var tokenResponse = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-            emailAccount.AccessToken = tokenResponse["access_token"];
+            var tokenResponse = System.Text.Json.JsonSerializer.Deserialize<TokenResponse>(json);
+            emailAccount.AccessToken = tokenResponse.access_token;
             await _dbContext.SaveChangesAsync();
         }
 
@@ -328,9 +334,9 @@ namespace MailMate_BE_V2.Services
                 })
                 .ToListAsync();
 
-            if (emails == null)
+            if (!emails.Any())
             {
-                throw new Exception("Email not found or you do not have permission to access it.");
+                throw new Exception("Không tìm thấy email hoặc bạn không có quyền truy cập.");
             }
 
             return emails;
@@ -472,23 +478,32 @@ namespace MailMate_BE_V2.Services
                 throw new KeyNotFoundException("Không tìm thấy tài khoản email hoặc bạn không có quyền.");
             }
 
-            // Kiểm tra địa chỉ email của tài khoản (thuộc tính Email)
-            if (string.IsNullOrEmpty(emailAccount.Email))
+            // Lấy email từ bảng Users
+            var userRecord = await _dbContext.Users
+                .FirstOrDefaultAsync(ea => ea.UserId == userId);
+            if (userRecord == null)
             {
-                throw new ArgumentException("Địa chỉ email của tài khoản không được để trống.");
+                throw new KeyNotFoundException("Không tìm thấy người dùng.");
+            }
+            string userEmail = userRecord.Email;
+
+            // Kiểm tra email người gửi
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                throw new ArgumentException("Địa chỉ email người gửi không được để trống.");
             }
 
-            // Kiểm tra định dạng email người gửi (emailAccount.Email)
+            // Kiểm tra định dạng email người gửi
             try
             {
-                var senderAddress = new MailAddress(emailAccount.Email);
+                var senderAddress = new MailAddress(userEmail);
             }
             catch (FormatException)
             {
-                throw new ArgumentException("Địa chỉ email của tài khoản không hợp lệ.");
+                throw new ArgumentException("Địa chỉ email người gửi không hợp lệ.");
             }
 
-            // Kiểm tra định dạng email người nhận (request.To)
+            // Kiểm tra định dạng email người nhận
             try
             {
                 var recipientAddress = new MailAddress(request.To);
@@ -520,7 +535,7 @@ namespace MailMate_BE_V2.Services
             };
 
             // Kiểm tra và refresh token nếu cần
-            if (token.IsExpired(SystemClock.Default))
+            if (token.IsStale)
             {
                 await RefreshAccessTokenAsync(emailAccount);
                 token.AccessToken = emailAccount.AccessToken;
@@ -537,14 +552,14 @@ namespace MailMate_BE_V2.Services
 
             // Tạo email message bằng chuỗi MIME thủ công
             var emailMessage = new Google.Apis.Gmail.v1.Data.Message();
-            var mimeString = $"From: {emailAccount.Email}\r\n" +
+            var mimeString = $"From: {userEmail}\r\n" +
                              $"To: {request.To}\r\n" +
                              $"Subject: {request.Subject}\r\n" +
                              "Content-Type: text/plain; charset=utf-8\r\n" +
                              "\r\n" +
                              $"{request.Body}";
             emailMessage.Raw = Convert.ToBase64String(Encoding.UTF8.GetBytes(mimeString))
-                .Replace('+', '-').Replace('/', '_'); // URL-safe base64
+                .Replace('+', '-').Replace('/', '_');
 
             // Gửi email
             var sendRequest = gmailService.Users.Messages.Send(emailMessage, "me");
@@ -558,8 +573,8 @@ namespace MailMate_BE_V2.Services
                 EmailAccountId = emailAccount.EmailAccountId,
                 Subject = request.Subject,
                 Body = request.Body,
-                From = emailAccount.Email, // Dùng Email để ghi người gửi
-                Summary = "", // Không cần tóm tắt
+                From = userEmail,
+                Summary = "",
                 IsSpam = false,
                 ReceivedAt = DateTime.UtcNow
             };
@@ -572,7 +587,7 @@ namespace MailMate_BE_V2.Services
                 UserId = userId,
                 Action = "Gửi email thủ công",
                 Timestamp = DateTime.UtcNow,
-                Metadata = System.Text.Json.JsonSerializer.Serialize(new { EmailId = sentMessage.Id, To = request.To, From = emailAccount.Email })
+                Metadata = System.Text.Json.JsonSerializer.Serialize(new { EmailId = sentMessage.Id, To = request.To, From = userEmail })
             });
 
             await _dbContext.SaveChangesAsync();

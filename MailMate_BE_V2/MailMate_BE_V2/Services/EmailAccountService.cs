@@ -25,7 +25,7 @@ namespace MailMate_BE_V2.Services
         {
             var clientId = _configuration["GoogleOAuth:ClientId"];
             var redirectUri = _configuration["GoogleOAuth:RedirectUri"];
-            var scopes = new[] { "https://www.googleapis.com/auth/gmail.readonly", "email", "profile" }; // Thêm scopes khác nếu cần
+            var scopes = new[] { "https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/gmail.send", "email", "profile" }; // Thêm scope gmail.send
 
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
             {

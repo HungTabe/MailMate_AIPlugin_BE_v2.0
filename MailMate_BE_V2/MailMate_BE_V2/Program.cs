@@ -1,12 +1,13 @@
 ﻿using MailMate_BE_V2.Data;
 using MailMate_BE_V2.DTOs.Gemini;
-using MailMate_BE_V2.Models.PayOS;
 using MailMate_BE_V2.Interfaces;
+using MailMate_BE_V2.Models.PayOS;
 using MailMate_BE_V2.Services;
 using MailMate_BE_V2.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Net.payOS.Constants;
 using System.Text;
 
@@ -67,7 +68,38 @@ builder.Services.AddDbContext<MailMateDbContext>(options =>
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Cấu hình Swagger với khóa Authorize
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "MailMate API", Version = "v1" });
+
+    // Thêm nút Authorize trên Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter token with: Bearer <token>",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    // Yêu cầu tất cả API cần Bearer Token
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 

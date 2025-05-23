@@ -17,10 +17,7 @@ namespace MailMate_BE_V2.Models
         [Required]
         [StringLength(255)] // Địa chỉ email tối đa 255 ký tự
         [EmailAddress] // Kiểm tra định dạng email
-        public string Email { get; set; } // Thêm thuộc tính mới cho API gửi mail thủ công
 
-        [Required]
-        [StringLength(500)]
         public string AccessToken { get; set; }
 
         [StringLength(500)]
